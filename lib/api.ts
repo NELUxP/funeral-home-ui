@@ -9,7 +9,8 @@ export async function getAuthToken(username: string): Promise<string> {
     })
 
     if (!response.ok) {
-      throw new Error("Authentication failed")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Authentication failed: ${response.status} ${errorText}`)
     }
 
     // Извлекаем токен из заголовка Authorization
@@ -37,7 +38,8 @@ export async function getCompanyData(token: string, companyId: string): Promise<
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch company data")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Failed to fetch company data: ${response.status} ${errorText}`)
     }
 
     return await response.json()
@@ -58,7 +60,8 @@ export async function getContactData(token: string, contactId: string): Promise<
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch contact data")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Failed to fetch contact data: ${response.status} ${errorText}`)
     }
 
     return await response.json()
@@ -69,33 +72,37 @@ export async function getContactData(token: string, contactId: string): Promise<
 }
 
 export async function updateCompanyData(token: string, companyId: string, data: any): Promise<any> {
-  try {
-    // Форматируем данные в соответствии с документацией API
-    const requestData = {
-      name: data.name,
-      shortName: data.shortName,
-      businessEntity: data.businessEntity,
-      contract: {
-        no: data.contract.no,
-        issue_date: data.contract.issue_date, // Убедимся, что это в формате ISO
-      },
-      type: data.type,
-    }
+  console.log("Sending update request with data:", JSON.stringify(data))
 
+  try {
     const response = await fetch(`${API_BASE_URL}/companies/${companyId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(requestData),
+      body: JSON.stringify(data),
     })
 
+    // Получаем текст ответа для лучшей диагностики
+    const responseText = await response.text()
+
     if (!response.ok) {
-      throw new Error("Failed to update company data")
+      throw new Error(`Failed to update company data: ${response.status}, Message: ${responseText}`)
     }
 
-    return await response.json()
+    // Если ответ пустой, возвращаем исходные данные
+    if (!responseText.trim()) {
+      return data
+    }
+
+    try {
+      // Пробуем распарсить JSON
+      return JSON.parse(responseText)
+    } catch (e) {
+      // Возвращаем исходные данные, если не удалось распарсить ответ
+      return data
+    }
   } catch (error) {
     console.error("Update company error:", error)
     throw error
@@ -103,6 +110,8 @@ export async function updateCompanyData(token: string, companyId: string, data: 
 }
 
 export async function updateContactData(token: string, contactId: string, data: any): Promise<any> {
+  console.log("Sending contact update request with data:", JSON.stringify(data))
+
   try {
     const response = await fetch(`${API_BASE_URL}/contacts/${contactId}`, {
       method: "PATCH",
@@ -113,11 +122,25 @@ export async function updateContactData(token: string, contactId: string, data: 
       body: JSON.stringify(data),
     })
 
+    // Получаем текст ответа для лучшей диагностики
+    const responseText = await response.text()
+
     if (!response.ok) {
-      throw new Error("Failed to update contact data")
+      throw new Error(`Failed to update contact data: ${response.status}, Message: ${responseText}`)
     }
 
-    return await response.json()
+    // Если ответ пустой, возвращаем исходные данные
+    if (!responseText.trim()) {
+      return data
+    }
+
+    try {
+      // Пробуем распарсить JSON
+      return JSON.parse(responseText)
+    } catch (e) {
+      // Возвращаем исходные данные, если не удалось распарсить ответ
+      return data
+    }
   } catch (error) {
     console.error("Update contact error:", error)
     throw error
@@ -134,7 +157,8 @@ export async function deleteCompany(token: string, companyId: string): Promise<v
     })
 
     if (!response.ok) {
-      throw new Error("Failed to delete company")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Failed to delete company: ${response.status} ${errorText}`)
     }
   } catch (error) {
     console.error("Delete company error:", error)
@@ -158,7 +182,8 @@ export async function uploadCompanyImage(token: string, companyId: string, file:
     })
 
     if (!response.ok) {
-      throw new Error("Failed to upload image")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Failed to upload image: ${response.status} ${errorText}`)
     }
 
     return await response.json()
@@ -178,7 +203,8 @@ export async function deleteCompanyImage(token: string, companyId: string, image
     })
 
     if (!response.ok) {
-      throw new Error("Failed to delete image")
+      const errorText = await response.text().catch(() => "Unknown error")
+      throw new Error(`Failed to delete image: ${response.status} ${errorText}`)
     }
   } catch (error) {
     console.error("Delete image error:", error)

@@ -8,7 +8,7 @@ export default function Sidebar() {
     <div className="fixed left-0 top-0 bottom-0 w-16 bg-[#232323] flex flex-col items-center py-4">
       {/* Logo */}
       <div className="mb-8">
-        <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
+      <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden">
           <Image
             src="/logo.png"
             alt="Logo"
